@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.course_code }} Activities{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>{{ course.course_code }} - {{ course.course_name }} Activities</h2>
+    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary btn-sm mb-3">Back to Dashboard</a>
+
+    <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="assignments-tab" data-bs-toggle="tab" href="#assignments" role="tab">Assignments</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="gdbs-tab" data-bs-toggle="tab" href="#gdbs" role="tab">GDBs</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="sessions-tab" data-bs-toggle="tab" href="#sessions" role="tab">Sessions</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="mdb-tab" data-bs-toggle="tab" href="#mdb" role="tab">MDB</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3" id="activityTabContent">
+        <div class="tab-pane fade show active" id="assignments" role="tabpanel">
+            {% if assignments %}
+                <ul class="list-group">
+                    {% for a in assignments %}
+                    <li class="list-group-item">
+                        <strong>{{ a.assignment_name }}</strong> - Due: {{ a.due_date }} - Marks: {{ a.total_marks }}
+                        <p>{{ a.description }}</p>
+                        <a href="{{ a.assignment_file.url }}" class="btn btn-sm btn-outline-primary">Download</a>
+
+                        {% if a.due_date >= today %}
+                            {% if a.assignment_id in submitted_assignments %}
+                                <span class="badge bg-success ms-2">Submitted</span>
+                            {% else %}
+                                <a href="{% url 'submit_assignment' a.assignment_id %}" class="btn btn-sm btn-primary ms-2">Submit</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-danger ms-2">Submission Closed</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No active assignments.</p>
+                <h5 class="mt-4">Previous Assignments Results</h5>
+                {% if previous_submissions %}
+                    <ul class="list-group">
+                        {% for sub in previous_submissions %}
+                        <li class="list-group-item">
+                            <strong>{{ sub.assignment.assignment_name }}</strong> - Submitted on: {{ sub.submission_date|date:"M d, Y" }}<br>
+                            Marks Obtained: {% if sub.marks_obtained != None %}{{ sub.marks_obtained }}{% else %}Not marked yet{% endif %}<br>
+                            Feedback: {% if sub.feedback %}{{ sub.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You have no previous assignment submissions.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="gdbs" role="tabpanel">
+            {% if gdbs %}
+                <ul class="list-group">
+                    {% for g in gdbs %}
+                    <li class="list-group-item">
+                        <strong>{{ g.topic }}</strong> - Ends: {{ g.end_date }} - Marks: {{ g.total_marks }}
+                        <p>{{ g.description }}</p>
+
+                        {% if g.end_date >= today %}
+                            {% if g.gdb_id in participated_gdbs %}
+                                <span class="badge bg-success ms-2">Participated</span>
+                            {% else %}
+                                <a href="{% url 'participate_gdb' g.gdb_id %}" class="btn btn-sm btn-primary ms-2">Submit Participation</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-danger ms-2">Participation Closed</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No active GDBs.</p>
+                <h5 class="mt-4">Previous GDB Participation Results</h5>
+                {% if previous_gdb_participations %}
+                    <ul class="list-group">
+                        {% for part in previous_gdb_participations %}
+                        <li class="list-group-item">
+                            <strong>{{ part.gdb.topic }}</strong><br>
+                            Marks Awarded: {% if part.marks_awarded != None %}{{ part.marks_awarded }}{% else %}Not marked yet{% endif %}<br>
+                            Feedback: {% if part.feedback %}{{ part.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You have no previous GDB participation.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="sessions" role="tabpanel">
+            {% if sessions %}
+                <ul class="list-group">
+                    {% for s in sessions %}
+                    <li class="list-group-item">
+                        <strong>{{ s.topic }}</strong> - {{ s.session_date }} ({{ s.start_time }} - {{ s.end_time }})
+                        <br>Conducted by: {{ s.conducted_by.name }}
+                        {% if s.meet_url %}
+                        <br><a href="{{ s.meet_url }}" target="_blank" class="btn btn-sm btn-outline-success mt-1">Join Meet</a>
+                        {% endif %}
+                        {% if s.notes %}
+                        <p class="mt-2">{{ s.notes }}</p>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No upcoming sessions.</p>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="mdb" role="tabpanel">
+            <h4>Post a Question</h4>
+            <form method="post" action="{% url 'post_mdb_question' course.course_id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea class="form-control" name="question_text" rows="3" placeholder="Enter your question here..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mb-3">Post Question</button>
+            </form>
+
+            <h4>Questions & Replies</h4>
+            {% if mdb_questions %}
+                <ul class="list-group">
+                    {% for q in mdb_questions %}
+                    <li class="list-group-item">
+                        <strong>{{ q.student.get_full_name }}</strong> asked on {{ q.created_at|date:"M d, Y H:i" }}:
+                        <p>{{ q.question_text|linebreaks }}</p>
+
+                        {% if q.reply_text %}
+                            <div class="border rounded p-2 bg-light mt-2">
+                                <strong>Teacher Reply ({{ q.reply_date|date:"M d, Y H:i" }}):</strong>
+                                <p>{{ q.reply_text|linebreaks }}</p>
+                            </div>
+                        {% else %}
+                            <em class="text-muted">No reply yet.</em>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No questions posted yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

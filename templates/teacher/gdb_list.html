@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}My GDBs{% endblock %}
+{% block content %}
+<h2 class="mb-4 fw-bold">My GDBs</h2>
+<a href="{% url 'gdb_create' %}" class="btn btn-primary mb-3">Create GDB</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Topic</th>
+            <th>Course</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Marks</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for gdb in gdbs %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ gdb.topic }}</td>
+            <td>{{ gdb.course.course_code }}</td>
+            <td>{{ gdb.start_date }}</td>
+            <td>{{ gdb.end_date }}</td>
+            <td>{{ gdb.total_marks }}</td>
+            <td>
+                <a href="{% url 'gdb_edit' gdb.gdb_id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'gdb_delete' gdb.gdb_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this GDB?')">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No GDBs found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

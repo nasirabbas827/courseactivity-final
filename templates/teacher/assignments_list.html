@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}My Assignments{% endblock %}
+{% block content %}
+<h2 class="mb-4 fw-bold">My Assignments</h2>
+<a href="{% url 'assignment_create' %}" class="btn btn-primary mb-3">Create Assignment</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Due Date</th>
+            <th>Total Marks</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for assignment in assignments %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ assignment.assignment_name }}</td>
+            <td>{{ assignment.course.course_code }}</td>
+            <td>{{ assignment.due_date }}</td>
+            <td>{{ assignment.total_marks }}</td>
+            <td>
+                <a href="{% url 'assignment_edit' assignment.assignment_id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'assignment_delete' assignment.assignment_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this assignment?')">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No assignments found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

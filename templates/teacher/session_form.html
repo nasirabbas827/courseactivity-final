@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit %}Edit Session{% else %}Create Session{% endif %}{% endblock %}
+{% block content %}
+<h2 class="mb-4 fw-bold">{% if edit %}Edit Session{% else %}Create Session{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">{% if edit %}Update{% else %}Create{% endif %}</button>
+    <a href="{% url 'teacher_sessions' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to Course Activity Manager{% endblock %}
+
+{% block content %}
+<section class="bg-primary text-white py-5 text-center position-relative overflow-hidden">
+    <div class="container py-5">
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Empower Your Learning Journey</h1>
+        <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-0-5s">Seamlessly manage courses, assignments, and academic progress with Course Activity Manager.</p>
+        <a href="{% url 'user_login' %}" class="btn btn-light btn-lg mt-3 px-5 py-3 rounded-pill shadow-lg animate__animated animate__zoomIn animate__delay-1s">Get Started Today <i class="fas fa-arrow-right ms-2"></i></a>
+    </div>
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);"></div>
+    <div class="position-absolute bottom-0 end-0 w-100 h-100" style="background: radial-gradient(circle at bottom right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);"></div>
+</section>
+
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold text-dark-blue">Unleash Your Academic Potential</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-chalkboard-teacher fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title fw-bold">Course Management</h5>
+                        <p class="card-text text-muted">Organize all your courses, lectures, and study materials in one intuitive platform.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-clipboard-list fa-3x text-success mb-3"></i>
+                        <h5 class="card-title fw-bold">Assignment & GDB Tracking</h5>
+                        <p class="card-text text-muted">Keep track of all assignments, GDBS, and quizzes with due dates and submission statuses.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-calendar-check fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title fw-bold">Session & Attendance Monitoring</h5>
+                        <p class="card-text text-muted">Effortlessly manage class sessions, track attendance, and log important notes.</p>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-users fa-3x text-info mb-3"></i>
+                        <h5 class="card-title fw-bold">Student Enrollment & Reports</h5>
+                        <p class="card-text text-muted">Manage student enrollments and generate detailed activity reports for insights.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-headset fa-3x text-danger mb-3"></i>
+                        <h5 class="card-title fw-bold">Dedicated Support Tickets</h5>
+                        <p class="card-text text-muted">Provide or receive assistance promptly through an integrated support ticket system.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0 transform-on-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-chart-line fa-3x text-secondary mb-3"></i>
+                        <h5 class="card-title fw-bold">Performance Analytics</h5>
+                        <p class="card-text text-muted">Visualize academic progress and identify areas for improvement with comprehensive reports.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold text-dark-blue">Your Path to Organized Learning</h2>
+        <div class="row text-center justify-content-center g-4">
+            <div class="col-md-3">
+                <div class="icon-circle mb-3 mx-auto"><i class="fas fa-user-plus fa-2x"></i></div>
+                <h5 class="fw-bold">1. Sign Up & Profile</h5>
+                <p class="text-muted">Create your account and personalize your academic profile.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="icon-circle mb-3 mx-auto"><i class="fas fa-file-alt fa-2x"></i></div>
+                <h5 class="fw-bold">2. Enroll in Courses</h5>
+                <p class="text-muted">Easily enroll in courses and access your tailored dashboard.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="icon-circle mb-3 mx-auto"><i class="fas fa-cogs fa-2x"></i></div>
+                <h5 class="fw-bold">3. Manage Activities</h5>
+                <p class="text-muted">Utilize tools to track assignments, sessions, and academic progress.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="icon-circle mb-3 mx-auto"><i class="fas fa-graduation-cap fa-2x"></i></div>
+                <h5 class="fw-bold">4. Achieve Success</h5>
+                <p class="text-muted">Stay organized, productive, and excel in your studies.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold text-dark-blue">Voices of Our Users</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0 p-4 testimonial-card">
+                    <div class="card-body">
+                        <p class="blockquote fs-5 text-dark">"Course Activity Manager has revolutionized how I keep tabs on my students' progress. It's incredibly intuitive and robust!"</p>
+                        <footer class="blockquote-footer mt-3 fs-6">Sana Malik, <cite title="Source Title">University Professor</cite></footer>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm border-0 p-4 testimonial-card">
+                    <div class="card-body">
+                        <p class="blockquote fs-5 text-dark">"Managing multiple courses used to be a nightmare. Now, with CAM, everything is streamlined and I never miss a deadline."</p>
+                        <footer class="blockquote-footer mt-3 fs-6">Ahmed Raza, <cite title="Source Title">College Student</cite></footer>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-primary text-white py-5 text-center">
+    <div class="container">
+        <h2 class="display-5 fw-bold mb-3">Ready to Take Control of Your Academics?</h2>
+        <p class="lead mb-4">Join hundreds of educators and students who are simplifying their course activities.</p>
+        <a href="{% url 'user_login' %}" class="btn btn-warning btn-lg px-5 py-3 rounded-pill shadow-lg">Sign Up Now <i class="fas fa-sign-in-alt ms-2"></i></a>
+    </div>
+</section>
+
+<section class="bg-dark text-white py-5">
+    <div class="container">
+        <h2 class="text-center mb-4 fw-bold">Get In Touch</h2>
+        <p class="text-center mb-5 text-muted">Have questions or need assistance? Reach out to us!</p>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post" class="p-4 rounded shadow-lg bg-white text-dark">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="Your Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="your.email@example.com" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" required placeholder="Subject of your inquiry" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Tell us how we can help"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary py-2"><i class="fas fa-paper-plane me-2"></i> Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block css %}
+<style>
+    /* Custom styles for the landing page */
+    .text-primary {
+        color: #4e73df !important; /* Matches sidebar primary color */
+    }
+
+    .bg-primary {
+        background-color: #4e73df !important; /* Matches sidebar primary color */
+    }
+
+    .btn-light {
+        color: #4e73df !important;
+        background-color: #f8f9fa !important;
+        border-color: #f8f9fa !important;
+    }
+
+    .btn-light:hover {
+        color: #224abe !important;
+        background-color: #e2e6ea !important;
+        border-color: #dae0e5 !important;
+    }
+
+    .text-dark-blue {
+        color: #224abe; /* A darker shade for section headings */
+    }
+
+    /* Features section card hover effect */
+    .transform-on-hover {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .transform-on-hover:hover {
+        transform: translateY(-5px); /* Lifts the card slightly */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; /* More pronounced shadow */
+    }
+
+    /* How It Works section icons */
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: #e0e6f6; /* Lighter shade of primary for icons */
+        color: #4e73df;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    /* Testimonial card improvements */
+    .testimonial-card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+
+    .blockquote {
+        border-left: 5px solid #4e73df; /* Primary color border for quotes */
+        padding-left: 1rem;
+        margin-left: 0;
+        font-style: italic;
+    }
+
+    .blockquote-footer {
+        color: #6c757d;
+    }
+
+    /* Call to Action button */
+    .btn-warning {
+        background-color: #ffc107 !important; /* Amber from sidebar active state */
+        border-color: #ffc107 !important;
+        color: #212529 !important; /* Dark text for contrast */
+        font-weight: 600;
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800 !important;
+        border-color: #d39e00 !important;
+        box-shadow: 0 4px 15px rgba(255,193,7,0.3);
+    }
+
+    /* Contact Form styling */
+    .bg-dark .form-control {
+        background-color: #f8f9fa; /* Light input field background in dark section */
+        color: #212529;
+    }
+
+    .bg-dark .form-label {
+        color: #adb5bd; /* Lighter label text in dark section */
+    }
+
+    .bg-dark .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+        color: #fff;
+    }
+
+    .bg-dark .btn-primary:hover {
+        background-color: #224abe;
+        border-color: #224abe;
+    }
+
+    /* Animations (requires animate.css, if you want them) */
+
+</style>
+{% endblock %}

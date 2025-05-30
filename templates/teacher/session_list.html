@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}My Sessions{% endblock %}
+{% block content %}
+<h2 class="mb-4 fw-bold">My Sessions</h2>
+<a href="{% url 'session_create' %}" class="btn btn-primary mb-3">Create Session</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Course</th>
+            <th>Topic</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ session.session_date }}</td>
+            <td>{{ session.course.course_code }}</td>
+            <td>{{ session.topic }}</td>
+            <td>{{ session.start_time }}</td>
+            <td>{{ session.end_time }}</td>
+            <td>
+                <a href="{% url 'session_edit' session.session_id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'session_delete' session.session_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this session?')">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No sessions found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

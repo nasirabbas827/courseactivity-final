@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Participate GDB{% endblock %}
+{% block content %}
+<div class="container">
+    <h3>GDB Topic: {{ gdb.topic }}</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Submit Participation</button>
+    </form>
+</div>
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<script>
+    CKEDITOR.replace('id_contribution_text');
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Reports{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 fw-bold">Teacher Report Dashboard</h2>
+
+    <!-- Summary Cards -->
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card text-bg-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Weekly Activity</h5>
+                    <p class="card-text fs-4">{{ weekly_assignments }} Assignments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-success shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Monthly Activity</h5>
+                    <p class="card-text fs-4">{{ monthly_assignments }} Assignments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Five-Month Summary</h5>
+                    <p class="card-text fs-4">{{ five_month_assignments }} Assignments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Courses</h5>
+                    <p class="card-text fs-4">{{ total_courses }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-secondary shadow-sm mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Enrollments</h5>
+                    <p class="card-text fs-4">{{ total_enrollments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Charts -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <canvas id="taskChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="mb-4 d-flex gap-3 mt-4">
+        <button onclick="exportToExcel()" class="btn btn-success">Export to Excel</button>
+        <button onclick="exportToPDF()" class="btn btn-danger">Export to PDF</button>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- XLSX (SheetJS) for Excel export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- jsPDF and AutoTable for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    const pieData = {
+        labels: ['Pending Assignments', 'Pending GDBs', 'Unanswered MDBs'],
+        datasets: [{
+            label: 'Pending Tasks',
+            data: [{{ pending_assignments }}, {{ pending_gdbs }}, {{ unanswered_mdbs }}],
+            backgroundColor: ['#f94144', '#f3722c', '#f8961e'],
+        }]
+    };
+
+    const barData = {
+        labels: ['Weekly', 'Monthly', '5-Month'],
+        datasets: [{
+            label: 'Assignments Count',
+            data: [{{ weekly_assignments }}, {{ monthly_assignments }}, {{ five_month_assignments }}],
+            backgroundColor: '#577590',
+        }]
+    };
+
+    new Chart(document.getElementById('taskChart'), {
+        type: 'pie',
+        data: pieData,
+    });
+
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: barData,
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    function exportToExcel() {
+        const ws_data = [
+            ["Course", "Submitted Assignments", "Pending Assignments", "GDBs Participated", "Pending GDBs"],
+            {% for d in report_data %}
+            ["{{ d.course }}", {{ d.submitted_assignments }}, {{ d.pending_assignments }}, {{ d.participated_gdbs }}, {{ d.pending_gdbs }}],
+            {% endfor %}
+        ];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, "Report");
+        XLSX.writeFile(wb, "teacher_report.xlsx");
+    }
+
+    function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Teacher Report Summary", 10, 10);
+
+        const data = [
+            ["Course", "Submitted Assignments", "Pending Assignments", "GDBs Participated", "Pending GDBs"],
+            {% for d in report_data %}
+            ["{{ d.course }}", "{{ d.submitted_assignments }}", "{{ d.pending_assignments }}", "{{ d.participated_gdbs }}", "{{ d.pending_gdbs }}"],
+            {% endfor %}
+        ];
+
+        doc.autoTable({
+            head: [data[0]],
+            body: data.slice(1),
+            startY: 20,
+        });
+
+        doc.save("teacher_report.pdf");
+    }
+</script>
+{% endblock %}

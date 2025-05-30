@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Submitted Assignments</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Student</th><th>Assignment</th><th>File</th><th>Marks</th><th>Feedback</th><th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in submissions %}
+            <tr>
+                <td>{{ s.student.name }}</td>
+                <td>{{ s.assignment.assignment_name }}</td>
+                <td><a href="{{ s.file_path.url }}" target="_blank">View</a></td>
+                <td>{{ s.marks_obtained|default:"-" }}</td>
+                <td>{{ s.feedback|default:"-" }}</td>
+                <td>
+                    <form method="post" action="{% url 'mark_assignment' s.submission_id %}">
+                        {% csrf_token %}
+                        <input type="number" name="marks_obtained" required placeholder="Marks" class="form-control mb-1">
+                        <textarea name="feedback" placeholder="Feedback" class="form-control mb-1"></textarea>
+                        <button type="submit" class="btn btn-primary btn-sm">Mark</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No submissions found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

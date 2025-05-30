@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Submitted MDBs</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Student</th><th>Question</th><th>Reply</th><th>Reply Date</th><th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in mdbs %}
+            <tr>
+                <td>{{ m.student.name }}</td>
+                <td>{{ m.question_text }}</td>
+                <td>{{ m.reply_text|default:"-" }}</td>
+                <td>{{ m.reply_date|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <form method="post" action="{% url 'reply_mdb' m.reply_id %}">
+                        {% csrf_token %}
+                        <textarea name="reply_text" placeholder="Reply" class="form-control mb-1" required></textarea>
+                        <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No MDB questions found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

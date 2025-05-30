@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}My Courses{% endblock %}
+{% block content %}
+<h2 class="mb-4 fw-bold">My Courses</h2>
+<ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'submitted_assignments' %}">Submitted Assignments</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'submitted_gdbs' %}">Submitted GDBs</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'submitted_mdbs' %}">Submitted MDBs</a>
+        </li>
+    </ul>
+
+<a href="{% url 'course_create' %}" class="btn btn-primary mb-3">Add New Course</a>
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Course Code</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ course.course_code }}</td>
+            <td>{{ course.course_name }}</td>
+            <td>{{ course.description|truncatewords:15 }}</td>
+            <td>
+                <a href="{% url 'course_edit' course.course_id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'course_delete' course.course_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No courses found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

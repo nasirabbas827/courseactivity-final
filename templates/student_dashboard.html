@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Welcome, {{ user_name }} (Student)</h2>
+
+    <div class="row">
+        {% for course in courses %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border rounded p-3">
+                <h4>{{ course.course_code }} - {{ course.course_name }}</h4>
+                <p>{{ course.description }}</p>
+
+                <span class="badge bg-primary">Assignments: {{ course.total_active_assignments }}</span>
+                <span class="badge bg-info text-dark">GDBs: {{ course.total_active_gdbs }}</span>
+                <span class="badge bg-success">Sessions: {{ course.total_active_sessions }}</span>
+                <br><br>
+
+                {% if course.course_id in enrolled_courses %}
+                    <a href="{% url 'student_course_activities' course.course_id %}" class="btn btn-outline-primary btn-sm">View Activities</a>
+                {% else %}
+                    <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-success btn-sm">Enroll</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>No courses available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

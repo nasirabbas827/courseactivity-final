@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-primary">Student Reports Dashboard</h2>
+
+    <!-- Export Buttons -->
+    <div class="mb-4 d-flex gap-3">
+        <button onclick="exportToExcel()" class="btn btn-success">Export to Excel</button>
+        <button onclick="exportToPDF()" class="btn btn-danger">Export to PDF</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        {% for d in report_data %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ d.course }}</h5>
+                    <p class="mb-1"><strong>Assignments (Submitted):</strong> {{ d.submitted_assignments }}</p>
+                    <p class="mb-1"><strong>Pending Assignments:</strong> {{ d.pending_assignments }}</p>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ d.submitted_percent }}%;"></div>
+                    </div>
+
+                    <p class="mb-1"><strong>GDBs Participated:</strong> {{ d.participated_gdbs }}</p>
+                    <p class="mb-1"><strong>Pending GDBs:</strong> {{ d.pending_gdbs }}</p>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ d.gdb_participated_percent }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Charts -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h5 class="text-secondary">Pending Assignments Distribution</h5>
+            <canvas id="assignmentsPieChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h5 class="text-secondary">GDB Performance Overview</h5>
+            <canvas id="gdbBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="mt-5">
+        <h4>Real-Time Alerts</h4>
+        <ul class="list-group">
+            {% for d in report_data %}
+                {% if d.pending_assignments > 0 %}
+                    <li class="list-group-item list-group-item-warning">
+                        {{ d.course }}: {{ d.pending_assignments }} assignment(s) pending
+                    </li>
+                {% endif %}
+                {% if d.pending_gdbs > 0 %}
+                    <li class="list-group-item list-group-item-warning">
+                        {{ d.course }}: {{ d.pending_gdbs }} GDB(s) pending
+                    </li>
+                {% endif %}
+            {% empty %}
+                <li class="list-group-item">No pending tasks!</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const labels = [{% for d in report_data %}"{{ d.course }}",{% endfor %}];
+    const pendingAssignments = [{% for d in report_data %}{{ d.pending_assignments }},{% endfor %}];
+    const participatedGDBs = [{% for d in report_data %}{{ d.participated_gdbs }},{% endfor %}];
+    const pendingGDBs = [{% for d in report_data %}{{ d.pending_gdbs }},{% endfor %}];
+
+    new Chart(document.getElementById('assignmentsPieChart'), {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: pendingAssignments,
+                backgroundColor: ['#dc3545', '#ffc107', '#17a2b8', '#6f42c1', '#28a745']
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('gdbBarChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Participated',
+                    backgroundColor: '#007bff',
+                    data: participatedGDBs
+                },
+                {
+                    label: 'Pending',
+                    backgroundColor: '#dc3545',
+                    data: pendingGDBs
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+});
+
+// Export Functions
+function exportToExcel() {
+    const wb = XLSX.utils.json_to_sheet([
+        {% for d in report_data %}
+        {
+            "Course": "{{ d.course }}",
+            "Submitted Assignments": {{ d.submitted_assignments }},
+            "Pending Assignments": {{ d.pending_assignments }},
+            "GDBs Participated": {{ d.participated_gdbs }},
+            "Pending GDBs": {{ d.pending_gdbs }}
+        },
+        {% endfor %}
+    ]);
+    const wbBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbBook, wb, "Report");
+    XLSX.writeFile(wbBook, "student_report.xlsx");
+}
+
+function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Student Report Summary", 10, 10);
+    const data = [
+        ["Course", "Submitted", "Pending", "GDBs Done", "GDBs Pending"],
+        {% for d in report_data %}
+        ["{{ d.course }}", "{{ d.submitted_assignments }}", "{{ d.pending_assignments }}", "{{ d.participated_gdbs }}", "{{ d.pending_gdbs }}"],
+        {% endfor %}
+    ];
+    doc.autoTable({ head: [data[0]], body: data.slice(1), startY: 20 });
+    doc.save("student_report.pdf");
+}
+</script>
+{% endblock %}

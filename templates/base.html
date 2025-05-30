@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Course Activity Management System{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWtPyhA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #eef1f6; /* Lighter background for main content area */
+            color: #344767; /* A more subtle dark gray for general text */
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 250px; /* Slightly wider sidebar */
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%); /* Adjusted gradient direction */
+            padding-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.15); /* Stronger shadow */
+            transition: all 0.3s ease; /* Smooth transition for potential future collapse */
+            overflow-y: auto; /* Ensure scrollbar if content exceeds height */
+        }
+
+        .sidebar .brand {
+            font-weight: 700;
+            font-size: 1.8rem; /* Larger brand text */
+            color: #fff;
+            text-align: center;
+            margin-bottom: 3.5rem; /* More space below brand */
+            letter-spacing: 1.5px; /* Increased letter spacing */
+            user-select: none;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.2); /* Subtle text shadow */
+        }
+
+        .sidebar .nav-link {
+            color: #c9d0f5; /* Lighter tint for inactive links */
+            padding: 0.9rem 2.5rem; /* More padding for links */
+            font-weight: 500; /* Slightly less bold for regular links */
+            transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease;
+            border-left: 5px solid transparent; /* Thicker border for active state */
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Space between icon and text */
+        }
+
+        .sidebar .nav-link i {
+            font-size: 1.1rem; /* Icon size */
+            color: #a7b6e9; /* Icon color */
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(69, 90, 100, 0.2); /* Slightly transparent background on hover/active */
+            color: #ffffff; /* White text on hover/active */
+            border-left-color: #ffc107; /* Amber highlight for active link */
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link.active i {
+            color: #ffc107; /* Active icon color */
+        }
+
+        .sidebar .user-info {
+            color: #d1d9f8; /* Lighter text for user info */
+            padding: 0 2.5rem 2.5rem; /* Adjusted padding */
+            font-size: 0.95rem; /* Slightly larger font size */
+            border-bottom: 1px solid rgba(255,255,255,0.15); /* Slightly darker border */
+            margin-bottom: 2rem; /* More space below user info */
+            user-select: none;
+        }
+
+        .main-content {
+            margin-left: 250px; /* Adjust margin to match sidebar width */
+            padding: 2.5rem 3.5rem; /* More generous padding */
+            min-height: 100vh;
+            background-color: #f8f9fc; /* Slightly off-white background */
+            box-shadow: inset 0 0 15px rgba(240, 241, 244, 0.6); /* Softer inner shadow */
+            transition: margin-left 0.3s ease;
+        }
+
+        .footer {
+            margin-left: 250px; /* Adjust margin to match sidebar width */
+            padding: 1.5rem 3.5rem;
+            background-color: #eef1f6; /* Consistent with body background */
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            user-select: none;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* --- Global Styles for Tables --- */
+        .table {
+            background-color: #ffffff;
+            border-collapse: separate; /* Allows for rounded corners */
+            border-spacing: 0;
+            border-radius: 0.75rem; /* Rounded corners for the table container */
+            overflow: hidden; /* Ensures rounded corners are visible */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Soft shadow for tables */
+        }
+
+        .table thead th {
+            background-color: #4e73df; /* Header background color from sidebar */
+            color: #ffffff;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: none; /* Remove default bootstrap border */
+            vertical-align: middle;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f8f9fa; /* Zebra striping */
+        }
+
+        .table tbody tr:hover {
+            background-color: #e9ecef; /* Subtle hover effect */
+        }
+
+        .table tbody td {
+            padding: 0.85rem 1.25rem;
+            vertical-align: middle;
+            border-top: 1px solid #e0e6f6; /* Lighter border between rows */
+        }
+
+        .table .btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.35rem;
+            margin-right: 0.25rem;
+        }
+
+        /* --- Global Styles for Forms --- */
+        .card {
+            border: none;
+            border-radius: 1rem; /* More rounded card corners */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); /* Deeper shadow for cards */
+            background-color: #ffffff;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background-color: #f0f2f5; /* Lighter header for cards */
+            border-bottom: 1px solid #e0e6f6;
+            padding: 1.25rem 1.5rem;
+            border-top-left-radius: 1rem; /* Match card radius */
+            border-top-right-radius: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #344767;
+        }
+
+        .card-body {
+            padding: 2rem 2.5rem; /* More padding inside card body */
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block; /* Ensure label takes full width */
+        }
+
+        .form-control {
+            border-radius: 0.5rem; /* Slightly rounded input fields */
+            padding: 0.75rem 1rem;
+            border: 1px solid #ced4da;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25); /* Standard Bootstrap focus glow */
+        }
+
+        .btn-primary {
+            background-color: #4e73df; /* Primary button color from sidebar */
+            border-color: #4e73df;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #224abe;
+            border-color: #224abe;
+            box-shadow: 0 4px 10px rgba(78, 115, 223, 0.25);
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        /* Adjustments for login/home page if not logged in */
+        .sidebar .nav.px-3 .nav-link {
+            padding: 0.75rem 1rem;
+            border-left: none; /* No special border for these */
+            color: #d1d9ff;
+        }
+
+        .sidebar .nav.px-3 .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        /* Scrollbar for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            Course Manager
+        </div>
+
+        {% if request.session.user_id %}
+        <div class="user-info">
+            Logged in as:<br />
+            <strong>{{ request.session.user_name }}</strong><br />
+            <small>Role: {{ request.session.user_role|title }}</small>
+        </div>
+
+        <nav class="nav flex-column">
+            {% if request.session.user_role == 'teacher' %}
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}" href="{% url 'teacher_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="nav-link {% if 'teacher_courses' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'teacher_courses' %}"><i class="fas fa-book-open"></i> Courses</a>
+                <a class="nav-link {% if 'teacher_assignments' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'teacher_assignments' %}"><i class="fas fa-edit"></i> Assignments</a>
+                <a class="nav-link {% if 'teacher_gdbs' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'teacher_gdbs' %}"><i class="fas fa-comments"></i> GDBs</a>
+                <a class="nav-link {% if 'teacher_sessions' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'teacher_sessions' %}"><i class="fas fa-calendar-alt"></i> Sessions</a>
+                <a class="nav-link {% if 'teacher_enrolled_students' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'teacher_enrolled_students' %}"><i class="fas fa-users"></i> Enrolled Students</a>
+            {% elif request.session.user_role == 'student' %}
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'student_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="nav-link {% if 'student_tickets' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'student_tickets' %}"><i class="fas fa-headset"></i> Support Tickets</a>
+                <a class="nav-link {% if 'student_reports' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'student_reports' %}"><i class="fas fa-chart-bar"></i> Activities Reports</a>
+            {% endif %}
+            <a class="nav-link" href="{% url 'user_logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+        {% else %}
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'user_login' %}active{% endif %}" href="{% url 'user_login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a class="nav-link" href="/admin/"><i class="fas fa-user-shield"></i> Admin Login</a>
+        </nav>
+        {% endif %}
+    </div>
+
+    <div class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+        &copy; 2025 Course Activity Management System. All rights reserved.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eBq7IasHhM2R" crossorigin="anonymous"></script>
+</body>
+</html>

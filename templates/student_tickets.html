@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Support Tickets{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Support Tickets</h2>
+    
+    <!-- New Ticket Form -->
+    <h4>Submit a New Ticket</h4>
+    <form method="post" action="{% url 'submit_ticket' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="subject" class="form-label">Subject</label>
+            <input type="text" name="subject" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="priority" class="form-label">Priority</label>
+            <select name="priority" class="form-select" required>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mb-4">Submit Ticket</button>
+    </form>
+
+    <!-- Ticket List -->
+    <h4>Your Tickets</h4>
+    {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Subject</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Opened Date</th>
+                        <th>Resolved Date</th>
+                        <th>Resolution Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tickets %}
+                    <tr>
+                        <td>{{ t.ticket_id }}</td>
+                        <td>{{ t.subject }}</td>
+                        <td>{{ t.description|linebreaksbr }}</td>
+                        <td>{{ t.status }}</td>
+                        <td>{{ t.priority }}</td>
+                        <td>{{ t.opened_date }}</td>
+                        <td>{{ t.resolved_date|default:"-" }}</td>
+                        <td>{{ t.resolution_notes|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No tickets submitted yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Enrolled Students{% endblock %}
+
+{% block content %}
+<h2>Enrolled Students in Your Courses</h2>
+
+<a href="{% url 'teacher_courses' %}" class="btn btn-secondary mb-3">Back to My Courses</a>
+
+{% if student_courses %}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Email</th>
+            <th>Enrolled Courses</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student, courses in student_courses.items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>
+                <ul class="mb-0">
+                    {% for course in courses %}
+                    <li>{{ course.course_code }} - {{ course.course_name }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No students enrolled in your courses yet.</p>
+{% endif %}
+{% endblock %}
