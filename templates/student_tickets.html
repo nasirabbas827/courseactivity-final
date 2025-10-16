@@ -6,26 +6,30 @@
     
     <!-- New Ticket Form -->
     <h4>Submit a New Ticket</h4>
-    <form method="post" action="{% url 'submit_ticket' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="subject" class="form-label">Subject</label>
-            <input type="text" name="subject" class="form-control" required>
+    <div class="card mx-auto mb-4" style="max-width: 600px;">
+        <div class="card-body">
+            <form method="post" action="{% url 'submit_ticket' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input type="text" name="subject" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Ticket</button>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea name="description" class="form-control" rows="4" required></textarea>
-        </div>
-        <div class="mb-3">
-            <label for="priority" class="form-label">Priority</label>
-            <select name="priority" class="form-select" required>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary mb-4">Submit Ticket</button>
-    </form>
+    </div>
 
     <!-- Ticket List -->
     <h4>Your Tickets</h4>

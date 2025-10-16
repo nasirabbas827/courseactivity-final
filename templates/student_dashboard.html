@@ -1,31 +1,193 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Student Dashboard{% endblock %}
 {% block content %}
-<div class="container-fluid">
-    <h2 class="mb-4">Welcome, {{ user_name }} (Student)</h2>
+<div class="container mt-5">
+    <h1 class="mb-5 fw-bold text-primary">Your Academic Dashboard, {{ user_name }}</h1>
 
-    <div class="row">
-        {% for course in courses %}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border rounded p-3">
-                <h4>{{ course.course_code }} - {{ course.course_name }}</h4>
-                <p>{{ course.description }}</p>
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-bg-success shadow-lg h-100 border-success border-2">
+                <div class="card-body">
+                    <h5 class="card-title">Overall Grade</h5>
+                    <p class="card-text fs-2 fw-bold">{{ average_grade_percentage }}%</p>
+                    <small class="text-white-75">Average across all marked assignments.</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-danger shadow-lg h-100 border-danger border-2">
+                <div class="card-body">
+                    <h5 class="card-title">Immediate Pending Work</h5>
+                    <p class="card-text fs-2 fw-bold">{{ assignments_due_and_unsubmitted }}</p>
+                    <small class="text-white-75">Unsubmitted assignments due today or later.</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning shadow-lg h-100 border-warning border-2">
+                <div class="card-body">
+                    <h5 class="card-title text-dark">Upcoming Deadlines</h5>
+                    <p class="card-text fs-2 fw-bold text-dark">{{ upcoming_count }}</p>
+                    <small class="text-dark">Tasks (Assgn/GDB) due in the next 7 days.</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info shadow-lg h-100 border-info border-2">
+                <div class="card-body">
+                    <h5 class="card-title text-dark">Enrolled Courses</h5>
+                    <p class="card-text fs-2 fw-bold text-dark">{{ total_enrolled_courses }}</p>
+                    <small class="text-dark">Total courses you are currently taking.</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <span class="badge bg-primary">Assignments: {{ course.total_active_assignments }}</span>
-                <span class="badge bg-info text-dark">GDBs: {{ course.total_active_gdbs }}</span>
-                <span class="badge bg-success">Sessions: {{ course.total_active_sessions }}</span>
-                <br><br>
+    <div class="row g-4 mb-5">
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light fw-bold">Assignment Submission Status Overview</div>
+                <div class="card-body">
+                    <canvas id="submissionChart"></canvas>
+                    {% if total_enrolled_courses == 0 %}
+                    <div class="alert alert-warning text-center mt-3" role="alert">
+                        Enroll in courses to see your progress chart!
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light fw-bold">Top 5 Upcoming Deadlines (Next 7 Days)</div>
+                <div class="card-body p-0">
+                    {% if upcoming_deadlines %}
+                    <ul class="list-group list-group-flush">
+                        {% for item in upcoming_deadlines %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold me-2">{{ item.name }}</span>
+                                <small class="text-muted">({{ item.course }})</small>
+                                <span class="badge rounded-pill {% if item.type == 'Assignment' %}text-bg-danger{% else %}text-bg-warning{% endif %} ms-2">{{ item.type }}</span>
+                            </div>
+                            <span class="fw-bold text-danger">{{ item.due_date|date:"M d, Y" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-success text-center mt-3 m-3" role="alert">
+                        You are all caught up! No major deadlines in the next 7 days.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-4 fw-bold text-dark">Your Course Activity Snapshot</h2>
+    <div class="row g-4 mb-5">
+        {% for course in enrolled_courses_data %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow h-100 border-start border-5 border-secondary">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title text-dark mb-1">{{ course.course_code }} - {{ course.course_name }}</h4>
+                    <p class="text-muted small mb-3">Total Assignments: {{ course.total_assignments_available }}</p>
 
-                {% if course.course_id in enrolled_courses %}
-                    <a href="{% url 'student_course_activities' course.course_id %}" class="btn btn-outline-primary btn-sm">View Activities</a>
-                {% else %}
-                    <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-success btn-sm">Enroll</a>
-                {% endif %}
+                    <ul class="list-unstyled small mb-4 flex-grow-1">
+                        <li class="mb-2">{{ course.submissions_marked }} Assignments Marked</li>
+                        <li class="mb-2">{{ course.submissions_made }} Total Submissions</li>
+                        <li class="mb-2">{{ course.total_active_sessions }} Upcoming Sessions</li>
+                        <li class="mb-2">{{ course.total_active_assignments }} Active Assignments</li>
+                    </ul>
+
+                    <a href="{% url 'student_course_activities' course.course_id %}" class="btn btn-primary btn-sm mt-auto">View Course Details</a>
+                </div>
             </div>
         </div>
         {% empty %}
-        <p>No courses available.</p>
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                You are not currently enrolled in any courses. Check the course catalog below to join one!
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="mb-4 fw-bold text-dark">Course Catalog (Available for Enrollment)</h2>
+    <div class="row g-4">
+        {% for course in all_courses %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border rounded p-3 {% if course.course_id in enrolled_course_ids %}border-success{% endif %}">
+                <h4>{{ course.course_code }} - {{ course.course_name }}</h4>
+                <p class="text-muted small">{{ course.description|truncatechars:150 }}</p>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-primary me-2">Assignments: {{ course.total_active_assignments }}</span>
+                        <span class="badge bg-info text-dark me-2">GDBs: {{ course.total_active_gdbs }}</span>
+                        <span class="badge bg-success">Sessions: {{ course.total_active_sessions }}</span>
+                    </div>
+                    
+                    {% if course.course_id in enrolled_course_ids %}
+                        <a href="{% url 'student_course_activities' course.course_id %}" class="btn btn-outline-success btn-sm">Enrolled! View Activities</a>
+                    {% else %}
+                        <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-success btn-sm">Enroll Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                No courses are currently available in the catalog.
+            </div>
+        </div>
         {% endfor %}
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const totalSubmitted = {{ total_submitted }};
+    const totalMarked = {{ total_marked }};
+    const totalUnsubmittedOrLate = {{ total_unsubmitted_or_late }};
+    
+    if (document.getElementById('submissionChart') && (totalSubmitted > 0 || totalUnsubmittedOrLate > 0)) {
+        const submissionData = {
+            labels: ['Submitted & Marked', 'Submitted, Pending Marking', 'Unsubmitted or Late'],
+            datasets: [{
+                data: [
+                    totalMarked,
+                    totalSubmitted - totalMarked,
+                    totalUnsubmittedOrLate
+                ],
+                backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                hoverOffset: 8
+            }]
+        };
+
+        new Chart(document.getElementById('submissionChart'), {
+            type: 'doughnut',
+            data: submissionData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            padding: 20
+                        }
+                    },
+                    title: { 
+                        display: true, 
+                        text: 'Overall Assignment Submission Status' 
+                    }
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

@@ -3,10 +3,17 @@
 {% block content %}
 <h2 class="mb-4 fw-bold">{% if edit %}Edit Assignment{% else %}Create Assignment{% endif %}</h2>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">{% if edit %}Update{% else %}Create{% endif %}</button>
-    <a href="{% url 'teacher_assignments' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="card mx-auto" style="max-width: 500px;">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">
+                {% if edit %}Update{% else %}Create{% endif %}
+            </button>
+            <a href="{% url 'teacher_assignments' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

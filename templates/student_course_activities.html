@@ -1,159 +1,229 @@
 {% extends 'base.html' %}
 {% block title %}{{ course.course_code }} Activities{% endblock %}
 {% block content %}
-<div class="container">
-    <h2>{{ course.course_code }} - {{ course.course_name }} Activities</h2>
-    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary btn-sm mb-3">Back to Dashboard</a>
+<div class="container py-4">
+    <!-- Load Bootstrap Icons for better visuals -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <h2 class="mb-4 text-primary">{{ course.course_code }} - {{ course.course_name }} Activities</h2>
+    <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary btn-sm mb-4 shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+
+    <!-- Tabs Navigation -->
     <ul class="nav nav-tabs" id="activityTabs" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" id="assignments-tab" data-bs-toggle="tab" href="#assignments" role="tab">Assignments</a>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="assignments-tab" data-bs-toggle="tab" href="#assignments" role="tab" aria-controls="assignments" aria-selected="true">Assignments</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="gdbs-tab" data-bs-toggle="tab" href="#gdbs" role="tab">GDBs</a>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="gdbs-tab" data-bs-toggle="tab" href="#gdbs" role="tab" aria-controls="gdbs" aria-selected="false">GDBs</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="sessions-tab" data-bs-toggle="tab" href="#sessions" role="tab">Sessions</a>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="sessions-tab" data-bs-toggle="tab" href="#sessions" role="tab" aria-controls="sessions" aria-selected="false">Sessions</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="mdb-tab" data-bs-toggle="tab" href="#mdb" role="tab">MDB</a>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="mdb-tab" data-bs-toggle="tab" href="#mdb" role="tab" aria-controls="mdb" aria-selected="false">MDB</a>
         </li>
     </ul>
 
-    <div class="tab-content mt-3" id="activityTabContent">
-        <div class="tab-pane fade show active" id="assignments" role="tabpanel">
+    <div class="tab-content pt-3" id="activityTabContent">
+
+        <!-- 1. Assignments Tab Content -->
+        <div class="tab-pane fade show active" id="assignments" role="tabpanel" aria-labelledby="assignments-tab">
+            <h4 class="mb-3 text-secondary">Active Assignments</h4>
             {% if assignments %}
-                <ul class="list-group">
+                <div class="list-group">
                     {% for a in assignments %}
-                    <li class="list-group-item">
-                        <strong>{{ a.assignment_name }}</strong> - Due: {{ a.due_date }} - Marks: {{ a.total_marks }}
-                        <p>{{ a.description }}</p>
-                        <a href="{{ a.assignment_file.url }}" class="btn btn-sm btn-outline-primary">Download</a>
-
-                        {% if a.due_date >= today %}
-                            {% if a.assignment_id in submitted_assignments %}
-                                <span class="badge bg-success ms-2">Submitted</span>
-                            {% else %}
-                                <a href="{% url 'submit_assignment' a.assignment_id %}" class="btn btn-sm btn-primary ms-2">Submit</a>
-                            {% endif %}
-                        {% else %}
-                            <span class="text-danger ms-2">Submission Closed</span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No active assignments.</p>
-                <h5 class="mt-4">Previous Assignments Results</h5>
-                {% if previous_submissions %}
-                    <ul class="list-group">
-                        {% for sub in previous_submissions %}
-                        <li class="list-group-item">
-                            <strong>{{ sub.assignment.assignment_name }}</strong> - Submitted on: {{ sub.submission_date|date:"M d, Y" }}<br>
-                            Marks Obtained: {% if sub.marks_obtained != None %}{{ sub.marks_obtained }}{% else %}Not marked yet{% endif %}<br>
-                            Feedback: {% if sub.feedback %}{{ sub.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>You have no previous assignment submissions.</p>
-                {% endif %}
-            {% endif %}
-        </div>
-
-        <div class="tab-pane fade" id="gdbs" role="tabpanel">
-            {% if gdbs %}
-                <ul class="list-group">
-                    {% for g in gdbs %}
-                    <li class="list-group-item">
-                        <strong>{{ g.topic }}</strong> - Ends: {{ g.end_date }} - Marks: {{ g.total_marks }}
-                        <p>{{ g.description }}</p>
-
-                        {% if g.end_date >= today %}
-                            {% if g.gdb_id in participated_gdbs %}
-                                <span class="badge bg-success ms-2">Participated</span>
-                            {% else %}
-                                <a href="{% url 'participate_gdb' g.gdb_id %}" class="btn btn-sm btn-primary ms-2">Submit Participation</a>
-                            {% endif %}
-                        {% else %}
-                            <span class="text-danger ms-2">Participation Closed</span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No active GDBs.</p>
-                <h5 class="mt-4">Previous GDB Participation Results</h5>
-                {% if previous_gdb_participations %}
-                    <ul class="list-group">
-                        {% for part in previous_gdb_participations %}
-                        <li class="list-group-item">
-                            <strong>{{ part.gdb.topic }}</strong><br>
-                            Marks Awarded: {% if part.marks_awarded != None %}{{ part.marks_awarded }}{% else %}Not marked yet{% endif %}<br>
-                            Feedback: {% if part.feedback %}{{ part.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>You have no previous GDB participation.</p>
-                {% endif %}
-            {% endif %}
-        </div>
-
-        <div class="tab-pane fade" id="sessions" role="tabpanel">
-            {% if sessions %}
-                <ul class="list-group">
-                    {% for s in sessions %}
-                    <li class="list-group-item">
-                        <strong>{{ s.topic }}</strong> - {{ s.session_date }} ({{ s.start_time }} - {{ s.end_time }})
-                        <br>Conducted by: {{ s.conducted_by.name }}
-                        {% if s.meet_url %}
-                        <br><a href="{{ s.meet_url }}" target="_blank" class="btn btn-sm btn-outline-success mt-1">Join Meet</a>
-                        {% endif %}
-                        {% if s.notes %}
-                        <p class="mt-2">{{ s.notes }}</p>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No upcoming sessions.</p>
-            {% endif %}
-        </div>
-
-        <div class="tab-pane fade" id="mdb" role="tabpanel">
-            <h4>Post a Question</h4>
-            <form method="post" action="{% url 'post_mdb_question' course.course_id %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <textarea class="form-control" name="question_text" rows="3" placeholder="Enter your question here..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3">Post Question</button>
-            </form>
-
-            <h4>Questions & Replies</h4>
-            {% if mdb_questions %}
-                <ul class="list-group">
-                    {% for q in mdb_questions %}
-                    <li class="list-group-item">
-                        <strong>{{ q.student.get_full_name }}</strong> asked on {{ q.created_at|date:"M d, Y H:i" }}:
-                        <p>{{ q.question_text|linebreaks }}</p>
-
-                        {% if q.reply_text %}
-                            <div class="border rounded p-2 bg-light mt-2">
-                                <strong>Teacher Reply ({{ q.reply_date|date:"M d, Y H:i" }}):</strong>
-                                <p>{{ q.reply_text|linebreaks }}</p>
+                        <div class="list-group-item mb-3 rounded-3 shadow-sm p-4 border border-info-subtle">
+                            <div class="d-flex w-100 justify-content-between align-items-start flex-column flex-md-row">
+                                <h5 class="mb-1 text-primary">{{ a.assignment_name }}</h5>
+                                <small class="text-muted text-nowrap">Total Marks: <span class="badge bg-light text-dark border border-secondary-subtle">{{ a.total_marks }}</span></small>
                             </div>
-                        {% else %}
-                            <em class="text-muted">No reply yet.</em>
-                        {% endif %}
-                    </li>
+                            <p class="mb-2 text-dark">{{ a.description|linebreaksbr }}</p>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap mt-2">
+                                <div class="text-sm text-muted">Due: {{ a.due_date|date:"M d, Y" }}</div>
+                                <div>
+                                    <a href="{{ a.assignment_file.url }}" class="btn btn-sm btn-outline-primary me-2">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+
+                                    {% if a.due_date >= today %}
+                                        {% if a.assignment_id in submitted_assignments %}
+                                            <span class="badge bg-success ms-2 p-2">Submitted <i class="bi bi-check-circle-fill"></i></span>
+                                        {% else %}
+                                            <a href="{% url 'submit_assignment' a.assignment_id %}" class="btn btn-sm btn-primary ms-2">
+                                                <i class="bi bi-upload"></i> Submit
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-danger ms-2 p-2">Submission Closed <i class="bi bi-x-circle-fill"></i></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             {% else %}
-                <p>No questions posted yet.</p>
+                <p class="alert alert-info">No active assignments are currently posted.</p>
+            {% endif %}
+
+            <h5 class="mt-4 border-top pt-3 text-secondary">Previous Assignments Results</h5>
+            {% if previous_submissions %}
+                <div class="list-group">
+                    {% for sub in previous_submissions %}
+                        <div class="list-group-item mb-2 rounded-3 p-4 bg-light shadow-sm">
+                            <strong class="text-dark">{{ sub.assignment.assignment_name }}</strong> - Submitted on: {{ sub.submission_date|date:"M d, Y" }}<br>
+                            <span class="text-success font-weight-bold">
+                                Marks Obtained:
+                                {% if sub.marks_obtained != None %}
+                                    <span class="badge bg-success-subtle text-success">{{ sub.marks_obtained }} / {{ sub.assignment.total_marks }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">Not marked yet</span>
+                                {% endif %}
+                            </span>
+                            <div class="mt-2 p-3 border rounded bg-white">
+                                <strong>Feedback:</strong> {% if sub.feedback %}{{ sub.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">You have no previous assignment submissions.</p>
+            {% endif %}
+        </div>
+
+        <!-- 2. GDBs Tab Content -->
+        <div class="tab-pane fade" id="gdbs" role="tabpanel" aria-labelledby="gdbs-tab">
+            <h4 class="mb-3 text-secondary">Active Graded Discussion Boards (GDBs)</h4>
+            {% if gdbs %}
+                <div class="list-group">
+                    {% for g in gdbs %}
+                        <div class="list-group-item mb-3 rounded-3 shadow-sm p-4 border border-success-subtle">
+                            <div class="d-flex w-100 justify-content-between align-items-start flex-column flex-md-row">
+                                <h5 class="mb-1 text-primary">{{ g.topic }}</h5>
+                                <small class="text-muted text-nowrap">Total Marks: <span class="badge bg-light text-dark border border-secondary-subtle">{{ g.total_marks }}</span></small>
+                            </div>
+                            <p class="mb-2 text-dark">{{ g.description|linebreaksbr }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="text-sm text-muted">Ends: {{ g.end_date|date:"M d, Y" }}</div>
+                                {% if g.end_date >= today %}
+                                    {% if g.gdb_id in participated_gdbs %}
+                                        <span class="badge bg-success ms-2 p-2">Participated <i class="bi bi-check-circle-fill"></i></span>
+                                    {% else %}
+                                        <a href="{% url 'participate_gdb' g.gdb_id %}" class="btn btn-sm btn-success ms-2">
+                                            <i class="bi bi-chat-dots-fill"></i> Submit Participation
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-danger ms-2 p-2">Participation Closed <i class="bi bi-x-circle-fill"></i></span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="alert alert-info">No active GDBs.</p>
+            {% endif %}
+
+            <h5 class="mt-4 border-top pt-3 text-secondary">Previous GDB Participation Results</h5>
+            {% if previous_gdb_participations %}
+                <div class="list-group">
+                    {% for part in previous_gdb_participations %}
+                        <div class="list-group-item mb-2 rounded-3 p-4 bg-light shadow-sm">
+                            <strong class="text-dark">{{ part.gdb.topic }}</strong><br>
+                            <span class="text-success font-weight-bold">
+                                Marks Awarded:
+                                {% if part.marks_awarded != None %}
+                                    <span class="badge bg-success-subtle text-success">{{ part.marks_awarded }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">Not marked yet</span>
+                                {% endif %}
+                            </span>
+                            <div class="mt-2 p-3 border rounded bg-white">
+                                <strong>Feedback:</strong> {% if part.feedback %}{{ part.feedback|linebreaks }}{% else %}No feedback yet{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">You have no previous GDB participation.</p>
+            {% endif %}
+        </div>
+
+        <!-- 3. Sessions Tab Content -->
+        <div class="tab-pane fade" id="sessions" role="tabpanel" aria-labelledby="sessions-tab">
+            <h4 class="mb-3 text-secondary">Upcoming and Recorded Sessions</h4>
+            {% if sessions %}
+                <div class="list-group">
+                    {% for s in sessions %}
+                        <div class="list-group-item mb-3 rounded-3 shadow-sm p-4 border border-primary-subtle">
+                            <h5 class="mb-1 text-primary">{{ s.topic }}</h5>
+                            <small class="text-muted d-block mb-2">
+                                <i class="bi bi-calendar"></i> {{ s.session_date }} (<i class="bi bi-clock"></i> {{ s.start_time }} - {{ s.end_time }})
+                            </small>
+                            <small class="d-block text-info">Conducted by: {{ s.conducted_by.name }}</small>
+
+                            {% if s.notes %}
+                                <p class="mt-2 mb-2 p-2 bg-light rounded">{{ s.notes|linebreaksbr }}</p>
+                            {% endif %}
+
+                            {% if s.meet_url %}
+                                <a href="{{ s.meet_url }}" target="_blank" class="btn btn-sm btn-success mt-2">
+                                    <i class="bi bi-camera-video-fill"></i> Join Meet
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="alert alert-info">No upcoming sessions.</p>
+            {% endif %}
+        </div>
+
+        <!-- 4. MDB Tab Content -->
+        <div class="tab-pane fade" id="mdb" role="tabpanel" aria-labelledby="mdb-tab">
+            <h4 class="mb-3 text-secondary">Post a Question</h4>
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="post" action="{% url 'post_mdb_question' course.course_id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" name="question_text" rows="4" placeholder="Enter your question here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send-fill"></i> Post Question
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <h4 class="mb-3 text-secondary border-top pt-3">Questions & Replies</h4>
+            {% if mdb_questions %}
+                <div class="list-group">
+                    {% for q in mdb_questions %}
+                        <div class="list-group-item mb-3 rounded-3 shadow-sm p-4 border border-warning-subtle">
+                            <strong class="text-info">{{ q.student.get_full_name }}</strong> asked on <small class="text-muted">{{ q.created_at|date:"M d, Y H:i" }}</small>:
+                            <p class="mt-2 p-3 bg-white rounded border-start border-4 border-info">{{ q.question_text|linebreaks }}</p>
+
+                            {% if q.reply_text %}
+                                <div class="border rounded p-3 bg-light mt-3">
+                                    <strong class="text-success">Teacher Reply <small class="text-muted">({{ q.reply_date|date:"M d, Y H:i" }})</small>:</strong>
+                                    <p class="mt-1 mb-0 border-start border-4 border-success ps-3">{{ q.reply_text|linebreaks }}</p>
+                                </div>
+                            {% else %}
+                                <em class="text-muted d-block mt-3">No reply yet.</em>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No questions posted yet in the MDB.</p>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Bootstrap JS (If not already included in base.html) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 {% endblock %}

@@ -1,48 +1,35 @@
 {% extends 'base.html' %}
-{% block title %}Teacher Reports{% endblock %}
+{% block title %}Teacher Dashboard{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4 fw-bold">Teacher Report Dashboard</h2>
+    <h2 class="mb-4 fw-bold text-dark">Welcome, {{ user_name }}!</h2>
 
-    <!-- Summary Cards -->
+    <h4 class="mt-5 mb-3 text-primary">Immediate Task Queue </h4>
     <div class="row g-4">
-        <div class="col-md-3">
-            <div class="card text-bg-primary shadow-sm">
+        <div class="col-md-4">
+            <div class="card text-bg-danger shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Weekly Activity</h5>
-                    <p class="card-text fs-4">{{ weekly_assignments }} Assignments</p>
+                    <h5 class="card-title">Assignments Pending Grading</h5>
+                    <p class="card-text fs-3">{{ pending_assignments_grading }}</p>
+                    <p class="card-text"><small>Total submissions awaiting marks.</small></p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-success shadow-sm">
+        <div class="col-md-4">
+            <div class="card text-bg-warning shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Monthly Activity</h5>
-                    <p class="card-text fs-4">{{ monthly_assignments }} Assignments</p>
+                    <h5 class="card-title">GDBs Pending Marking</h5>
+                    <p class="card-text fs-3">{{ pending_gdbs_grading }}</p>
+                    <p class="card-text"><small>Student contributions to be assessed.</small></p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-warning shadow-sm">
+        <div class="col-md-4">
+            <div class="card text-bg-info shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Five-Month Summary</h5>
-                    <p class="card-text fs-4">{{ five_month_assignments }} Assignments</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-bg-info shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Total Courses</h5>
-                    <p class="card-text fs-4">{{ total_courses }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-bg-secondary shadow-sm mt-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Enrollments</h5>
-                    <p class="card-text fs-4">{{ total_enrollments }}</p>
+                    <h5 class="card-title">Unanswered MDB Questions</h5>
+                    <p class="card-text fs-3">{{ unanswered_mdbs }}</p>
+                    <p class="card-text"><small>Questions awaiting your reply.</small></p>
                 </div>
             </div>
         </div>
@@ -50,96 +37,205 @@
 
     <hr class="my-5">
 
-    <!-- Charts -->
+    <h4 class="mb-3 text-dark">Overall Summary </h4>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card text-bg-info shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Courses</h5>
+                    <p class="card-text fs-4">{{ total_courses }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-secondary shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Enrollments</h5>
+                    <p class="card-text fs-4">{{ total_enrollments }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-dark shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Open Support Tickets</h5>
+                    <p class="card-text fs-4">{{ open_tickets }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tickets In Progress</h5>
+                    <p class="card-text fs-4">{{ in_progress_tickets }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr class="my-5">
+
+    <h4 class="mb-3 text-dark">Activity & Task Charts </h4>
     <div class="row g-4">
         <div class="col-md-6">
-            <canvas id="taskChart"></canvas>
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">Pending Tasks Breakdown</div>
+                <div class="card-body">
+                    <canvas id="taskChart"></canvas>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
-            <canvas id="barChart"></canvas>
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold">Assignment Creation Activity</div>
+                <div class="card-body">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Export Buttons -->
-    <div class="mb-4 d-flex gap-3 mt-4">
-        <button onclick="exportToExcel()" class="btn btn-success">Export to Excel</button>
-        <button onclick="exportToPDF()" class="btn btn-danger">Export to PDF</button>
+    <hr class="my-5">
+
+    <h4 class="mb-3 text-dark">Course Performance Report </h4>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover shadow-sm" id="courseReportTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Enrollments</th>
+                    <th>Total Assignments</th>
+                    <th>Total Sessions</th>
+                    <th>Assgn. Submitted</th>
+                    <th>Assgn. Marked</th>
+                    <th class="text-danger">Assgn. Pending Grading</th>
+                    <th>Total GDB Part.</th>
+                    <th class="text-warning">GDB Part. Pending Marking</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in report_data %}
+                <tr>
+                    <td><span class="badge text-bg-primary">{{ d.course }}</span></td>
+                    <td>{{ d.course_name }}</td>
+                    <td>{{ d.total_enrollments_course }}</td>
+                    <td>{{ d.total_assignments }}</td>
+                    <td>{{ d.total_sessions }}</td>
+                    <td>{{ d.submitted_assignments }}</td>
+                    <td>{{ d.marked_assignments }}</td>
+                    <td class="fw-bold text-danger">{{ d.pending_assignments_grading }}</td>
+                    <td>{{ d.total_gdb_participations }}</td>
+                    <td class="fw-bold text-warning">{{ d.pending_gdb_marking }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+    <div class="mb-5 d-flex gap-3 mt-4">
+        <button onclick="exportToExcel()" class="btn btn-success"><i class="bi bi-file-earmark-spreadsheet"></i> Export to Excel</button>
+        <button onclick="exportToPDF()" class="btn btn-danger"><i class="bi bi-file-earmark-pdf"></i> Export to PDF</button>
     </div>
 </div>
 
-<!-- Chart.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- XLSX (SheetJS) for Excel export -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<!-- jsPDF and AutoTable for PDF export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <script>
+    // --- Chart Data Update ---
     const pieData = {
         labels: ['Pending Assignments', 'Pending GDBs', 'Unanswered MDBs'],
         datasets: [{
             label: 'Pending Tasks',
-            data: [{{ pending_assignments }}, {{ pending_gdbs }}, {{ unanswered_mdbs }}],
-            backgroundColor: ['#f94144', '#f3722c', '#f8961e'],
+            data: [{{ pending_assignments_grading }}, {{ pending_gdbs_grading }}, {{ unanswered_mdbs }}],
+            backgroundColor: ['#e63946', '#ffb703', '#2a9d8f'],
         }]
     };
 
     const barData = {
         labels: ['Weekly', 'Monthly', '5-Month'],
         datasets: [{
-            label: 'Assignments Count',
+            label: 'Assignments Created Count',
             data: [{{ weekly_assignments }}, {{ monthly_assignments }}, {{ five_month_assignments }}],
-            backgroundColor: '#577590',
+            backgroundColor: '#457b9d',
         }]
     };
 
     new Chart(document.getElementById('taskChart'), {
-        type: 'pie',
+        type: 'doughnut', // Changed to doughnut for a different look
         data: pieData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Immediate Task Breakdown' }
+            }
+        }
     });
 
     new Chart(document.getElementById('barChart'), {
         type: 'bar',
         data: barData,
         options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Assignment Creation Activity (Assignments Uploaded)' }
+            },
             scales: {
-                y: { beginAtZero: true }
+                y: { beginAtZero: true, title: { display: true, text: 'Count' } }
             }
         }
     });
 
+    // --- Export Functions Update ---
     function exportToExcel() {
         const ws_data = [
-            ["Course", "Submitted Assignments", "Pending Assignments", "GDBs Participated", "Pending GDBs"],
+            // New Headers
+            ["Course Code", "Course Name", "Enrollments", "Total Assignments", "Total Sessions", "Assgn. Submitted", "Assgn. Marked", "Assgn. Pending Grading", "Total GDB Part.", "GDB Part. Pending Marking"],
             {% for d in report_data %}
-            ["{{ d.course }}", {{ d.submitted_assignments }}, {{ d.pending_assignments }}, {{ d.participated_gdbs }}, {{ d.pending_gdbs }}],
+            // New Data Fields
+            ["{{ d.course }}", "{{ d.course_name }}", {{ d.total_enrollments_course }}, {{ d.total_assignments }}, {{ d.total_sessions }}, {{ d.submitted_assignments }}, {{ d.marked_assignments }}, {{ d.pending_assignments_grading }}, {{ d.total_gdb_participations }}, {{ d.pending_gdb_marking }}],
             {% endfor %}
         ];
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(wb, ws, "Report");
-        XLSX.writeFile(wb, "teacher_report.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "TeacherReport");
+        XLSX.writeFile(wb, "teacher_dashboard_report.xlsx");
     }
 
     function exportToPDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("Teacher Report Summary", 10, 10);
+        const doc = new jsPDF('l', 'mm', 'a4'); // 'l' for landscape mode
+        doc.setFontSize(14);
+        doc.text("Teacher Course Performance Report", 10, 15);
 
-        const data = [
-            ["Course", "Submitted Assignments", "Pending Assignments", "GDBs Participated", "Pending GDBs"],
+        const head = [
+            ["Code", "Name", "Enrolls", "Total Assgn", "Total Sess", "Submtd", "Marked", "Pending Assgn", "Total GDB", "Pending GDB"]
+        ];
+
+        const body = [
             {% for d in report_data %}
-            ["{{ d.course }}", "{{ d.submitted_assignments }}", "{{ d.pending_assignments }}", "{{ d.participated_gdbs }}", "{{ d.pending_gdbs }}"],
+            ["{{ d.course }}", "{{ d.course_name }}", "{{ d.total_enrollments_course }}", "{{ d.total_assignments }}", "{{ d.total_sessions }}", "{{ d.submitted_assignments }}", "{{ d.marked_assignments }}", "{{ d.pending_assignments_grading }}", "{{ d.total_gdb_participations }}", "{{ d.pending_gdb_marking }}"],
             {% endfor %}
         ];
 
         doc.autoTable({
-            head: [data[0]],
-            body: data.slice(1),
+            head: head,
+            body: body,
             startY: 20,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [52, 58, 64] },
+            columnStyles: {
+                7: { fontStyle: 'bold', textColor: [220, 53, 69] }, // Highlight Pending Assignments
+                9: { fontStyle: 'bold', textColor: [255, 193, 7] } // Highlight Pending GDBs
+            }
         });
 
         doc.save("teacher_report.pdf");

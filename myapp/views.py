@@ -39,9 +39,9 @@ def user_logout(request):
     return redirect('user_login')
 
 from django.shortcuts import render, redirect
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.utils.timezone import now, timedelta
-from .models import User, Course, Assignment, AssignmentSubmission, GDB, GDBParticipation, MDBQuestion, Enrollment
+from .models import User, Course, Assignment, AssignmentSubmission, GDB, GDBParticipation, MDBQuestion, Enrollment, Session, SupportTicket # Import Session and SupportTicket
 
 def teacher_dashboard(request):
     if request.session.get('user_role') != 'teacher':
@@ -50,11 +50,14 @@ def teacher_dashboard(request):
     teacher = User.objects.get(id=request.session['user_id'])
 
     courses = Course.objects.filter(created_by=teacher)
+    course_ids = courses.values_list('course_id', flat=True)
     assignments = Assignment.objects.filter(course__in=courses)
     gdbs = GDB.objects.filter(course__in=courses)
-    mdbs = MDBQuestion.objects.filter(course__in=courses, reply_text__isnull=True)
-
+    mdbs = MDBQuestion.objects.filter(course__in=courses) # Changed to all MDBs for stats
+    sessions = Session.objects.filter(conducted_by=teacher) # Teacher's sessions
+    
     today = now().date()
+    # --- Time-based assignment stats (already present) ---
     five_months_ago = today - timedelta(days=150)
     one_month_ago = today - timedelta(days=30)
     one_week_ago = today - timedelta(days=7)
@@ -62,43 +65,59 @@ def teacher_dashboard(request):
     weekly_assignments = assignments.filter(upload_date__date__gte=one_week_ago).count()
     monthly_assignments = assignments.filter(upload_date__date__gte=one_month_ago).count()
     five_month_assignments = assignments.filter(upload_date__date__gte=five_months_ago).count()
-
-    pending_assignments = AssignmentSubmission.objects.filter(
+    
+    # --- Pending Tasks (Grading) ---
+    pending_assignments_grading = AssignmentSubmission.objects.filter(
         assignment__in=assignments, status='submitted'
-    ).count()
+    ).count() # Submissions pending marking
 
-    pending_gdbs = GDBParticipation.objects.filter(
-    course__in=courses,
-    marks_awarded__isnull=True
-).count()
-
-    unanswered_mdbs = mdbs.count()
-
-    # Total courses created by the teacher
+    pending_gdbs_grading = GDBParticipation.objects.filter(
+        gdb__in=gdbs, marks_awarded__isnull=True
+    ).count() # Participations pending marking
+    
+    unanswered_mdbs = mdbs.filter(reply_text__isnull=True).count()
+    
+    # --- Enrollment and Course Stats ---
     total_courses = courses.count()
-
-    # Total enrollments across all the teacher's courses
     total_enrollments = Enrollment.objects.filter(course__in=courses).count()
-
-    # Prepare report data per course for export (Excel/PDF)
+    
+    # --- Support Ticket Stats (New) ---
+    # Assuming students in the teacher's courses are the ones opening tickets
+    students_in_courses = Enrollment.objects.filter(course__in=courses).values_list('student_id', flat=True).distinct()
+    
+    open_tickets = SupportTicket.objects.filter(student__id__in=students_in_courses, status='open').count()
+    in_progress_tickets = SupportTicket.objects.filter(student__id__in=students_in_courses, status='in-progress').count()
+    
+    # --- Report Data per Course (Enhanced) ---
     report_data = []
     for course in courses:
-        course_assignments = assignments.filter(course=course)
-        submitted_assignments = AssignmentSubmission.objects.filter(
+        course_assignments = Assignment.objects.filter(course=course)
+        
+        # Submission status counts
+        submitted_count = AssignmentSubmission.objects.filter(assignment__in=course_assignments).count()
+        marked_count = AssignmentSubmission.objects.filter(assignment__in=course_assignments, status='marked').count()
+        pending_marking_course = AssignmentSubmission.objects.filter(
             assignment__in=course_assignments, status='submitted'
         ).count()
-        pending_assignments_course = AssignmentSubmission.objects.filter(
-            assignment__in=course_assignments, status='submitted'
-        ).count()  # Could differentiate if needed
-        participated_gdbs = GDBParticipation.objects.filter(course=course).values('student').distinct().count()
-        pending_gdbs_course = gdbs.filter(course=course, end_date__gte=today).count()
+        
+        # GDB Participation and Grading
+        total_gdb_participations = GDBParticipation.objects.filter(course=course).count()
+        pending_gdb_marking = GDBParticipation.objects.filter(course=course, marks_awarded__isnull=True).count()
 
+        # Session count
+        total_sessions = Session.objects.filter(course=course).count()
+        
         report_data.append({
             'course': course.course_code,
-            'submitted_assignments': submitted_assignments,
-            'pending_assignments': pending_assignments_course,
-            'participated_gdbs': participated_gdbs,
-            'pending_gdbs': pending_gdbs_course,
+            'course_name': course.course_name, # Added for better clarity in the report
+            'total_enrollments_course': Enrollment.objects.filter(course=course).count(),
+            'total_assignments': course_assignments.count(),
+            'total_sessions': total_sessions,
+            'submitted_assignments': submitted_count,
+            'marked_assignments': marked_count,
+            'pending_assignments_grading': pending_marking_course,
+            'total_gdb_participations': total_gdb_participations,
+            'pending_gdb_marking': pending_gdb_marking,
         })
 
     context = {
@@ -106,16 +125,20 @@ def teacher_dashboard(request):
         'weekly_assignments': weekly_assignments,
         'monthly_assignments': monthly_assignments,
         'five_month_assignments': five_month_assignments,
-        'pending_assignments': pending_assignments,
-        'pending_gdbs': pending_gdbs,
+        
+        'pending_assignments_grading': pending_assignments_grading, # Renamed for clarity
+        'pending_gdbs_grading': pending_gdbs_grading,             # Renamed for clarity
         'unanswered_mdbs': unanswered_mdbs,
+        
+        'open_tickets': open_tickets,
+        'in_progress_tickets': in_progress_tickets,
+        
         'total_courses': total_courses,
         'total_enrollments': total_enrollments,
         'report_data': report_data,
     }
 
     return render(request, 'teacher_dashboard.html', context)
-
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Course, User
@@ -451,30 +474,146 @@ def session_delete(request, session_id):
 
 
 
-from .models import Course, Enrollment, Assignment, GDB, Session, User , AssignmentSubmission , GDBParticipation
-from django.utils.timezone import now
-from django.db.models import Count, Q
+from django.shortcuts import render, redirect
+from django.db.models import Count, Q, F, Sum
+from django.utils.timezone import now, timedelta
+from .models import Course, Enrollment, Assignment, GDB, Session, User , AssignmentSubmission , GDBParticipation, models
+from datetime import date # Use standard date object for comparison
 
 def student_dashboard(request):
     if request.session.get('user_role') != 'student':
         return redirect('user_login')
 
     student = User.objects.get(id=request.session['user_id'])
+    
+    # 1. Enrolled Courses and IDs
+    enrolled_courses = Enrollment.objects.filter(student=student)
+    enrolled_course_ids = enrolled_courses.values_list('course_id', flat=True)
+    
+    # 2. Key Metrics Calculations
+    today = now().date()
+    seven_days_later = today + timedelta(days=7)
+    
+    # All submissions made by the student
+    student_submissions = AssignmentSubmission.objects.filter(student=student)
+    submitted_assignment_ids = student_submissions.values_list('assignment_id', flat=True)
+    
+    # --- UPCOMING DEADLINES (Next 7 days) ---
+    
+    # Assignments due soon and UN-SUBMITTED
+    upcoming_assignments_qs = Assignment.objects.filter(
+        course_id__in=enrolled_course_ids,
+        due_date__gte=today,
+        due_date__lte=seven_days_later
+    ).exclude(
+        assignment_id__in=submitted_assignment_ids
+    ).order_by('due_date')
+    
+    # GDBs due soon and UN-PARTICIPATED
+    participated_gdb_ids = GDBParticipation.objects.filter(student=student).values_list('gdb_id', flat=True)
+    upcoming_gdbs_qs = GDB.objects.filter(
+        course_id__in=enrolled_course_ids,
+        end_date__gte=today,
+        end_date__lte=seven_days_later
+    ).exclude(gdb_id__in=participated_gdb_ids).order_by('end_date')
 
-    enrolled_courses = Enrollment.objects.filter(student=student).values_list('course_id', flat=True)
+    upcoming_deadlines = []
+    for a in upcoming_assignments_qs:
+         upcoming_deadlines.append({
+            'type': 'Assignment',
+            'name': a.assignment_name,
+            'course': a.course.course_code,
+            'due_date': a.due_date,
+            'status': 'Unsubmitted'
+        })
 
-    courses = Course.objects.annotate(
+    for gdb in upcoming_gdbs_qs:
+        upcoming_deadlines.append({
+            'type': 'GDB',
+            'name': gdb.topic,
+            'course': gdb.course.course_code,
+            'due_date': gdb.end_date,
+            'status': 'Unparticipated'
+        })
+            
+    upcoming_deadlines.sort(key=lambda x: x['due_date'])
+    
+    # --- OVERALL METRICS ---
+    
+    # Assignments missing a submission (Active assignments that the student hasn't submitted yet)
+    assignments_due_and_unsubmitted = Assignment.objects.filter(
+        course_id__in=enrolled_course_ids,
+        due_date__gte=today 
+    ).exclude(
+        assignment_id__in=submitted_assignment_ids
+    ).count()
+
+    # Submission status counts for all assignments ever available to the student
+    total_submitted = student_submissions.count()
+    total_marked = student_submissions.filter(status='marked').count()
+    
+    total_available_assignments = Assignment.objects.filter(course_id__in=enrolled_course_ids).count()
+    # Count of assignments that were available but not submitted
+    total_unsubmitted_or_late = total_available_assignments - total_submitted
+    
+    # Calculate grade average (simple version)
+    total_marks_obtained = student_submissions.filter(status='marked').aggregate(total=Sum('marks_obtained'))['total'] or 0
+    # Sum of max marks for assignments that have been marked
+    total_max_marks = Assignment.objects.filter(
+        assignmentsubmission__in=student_submissions.filter(status='marked')
+    ).aggregate(total=Sum('total_marks'))['total'] or 1
+    
+    if total_max_marks > 0:
+        average_grade_percentage = round((total_marks_obtained / total_max_marks) * 100, 1)
+    else:
+        average_grade_percentage = 0
+        
+    # 3. Course Status Detailed Data (for the main course list)
+    enrolled_courses_data = Course.objects.filter(course_id__in=enrolled_course_ids).annotate(
+        # Counts for dashboard cards
+        total_active_assignments=Count('assignment', filter=Q(assignment__due_date__gte=today)),
+        total_active_gdbs=Count('gdb', filter=Q(gdb__end_date__gte=today)),
+        total_active_sessions=Count('session', filter=Q(session__session_date__gte=today)),
+        
+        # Student specific counts for course breakdown
+        submissions_made=Count('assignmentsubmission', filter=Q(assignmentsubmission__student=student)),
+        submissions_marked=Count('assignmentsubmission', filter=Q(assignmentsubmission__student=student, assignmentsubmission__status='marked')),
+        total_assignments_available=Count('assignment'),
+    ).order_by('course_code')
+    
+    # 4. All Courses (for the Enrollment Catalog section)
+    # This maintains the original function of listing all courses for enrollment/activity view
+    all_courses = Course.objects.annotate(
         is_enrolled=Count('enrollment', filter=Q(enrollment__student=student)),
-        total_active_assignments=Count('assignment', filter=Q(assignment__due_date__gte=now().date())),
-        total_active_gdbs=Count('gdb', filter=Q(gdb__end_date__gte=now().date())),
-        total_active_sessions=Count('session', filter=Q(session__session_date__gte=now().date())),
-    )
+        total_active_assignments=Count('assignment', filter=Q(assignment__due_date__gte=today)),
+        total_active_gdbs=Count('gdb', filter=Q(gdb__end_date__gte=today)),
+        total_active_sessions=Count('session', filter=Q(session__session_date__gte=today)),
+    ).order_by('course_code')
 
-    return render(request, 'student_dashboard.html', {
+
+    context = {
         'user_name': request.session.get('user_name'),
-        'courses': courses,
-        'enrolled_courses': enrolled_courses,
-    })
+        # Main Dashboard Metrics
+        'total_enrolled_courses': enrolled_courses.count(),
+        'average_grade_percentage': average_grade_percentage,
+        'assignments_due_and_unsubmitted': assignments_due_and_unsubmitted,
+        
+        # Submission status counts for charts
+        'total_submitted': total_submitted,
+        'total_marked': total_marked,
+        'total_unsubmitted_or_late': total_unsubmitted_or_late,
+        
+        'upcoming_deadlines': upcoming_deadlines[:5], # Only show top 5 upcoming
+        'upcoming_count': len(upcoming_deadlines),
+        
+        # Course Lists
+        'enrolled_courses_data': enrolled_courses_data, # Detailed data for enrolled courses
+        'all_courses': all_courses, # All courses for the enrollment list
+        'enrolled_course_ids': enrolled_course_ids, # Pass the IDs for the template logic
+    }
+
+    return render(request, 'student_dashboard.html', context)
+
 
 def enroll_course(request, course_id):
     if request.session.get('user_role') != 'student':
@@ -643,15 +782,19 @@ def submit_ticket(request):
 from django.shortcuts import render, redirect
 from django.utils.timezone import now, timedelta
 from django.db.models import Count, Q
-from .models import Assignment, GDB, AssignmentSubmission, GDBParticipation, Course, Enrollment, User
+from .models import Assignment, GDB, AssignmentSubmission, GDBParticipation, Course, Enrollment, User # Assuming User is your custom user model
 
 def student_reports(request):
+    # Security check: only allow students to access this page
     if request.session.get('user_role') != 'student':
         return redirect('user_login')
 
+    # Fetching the student user object
     student = User.objects.get(id=request.session['user_id'])
+    # Fetching all courses the student is enrolled in
     enrolled_courses = Course.objects.filter(enrollment__student=student)
 
+    # Timeframe calculations for recent activity
     today = now().date()
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
@@ -660,30 +803,48 @@ def student_reports(request):
     report_data = []
 
     for course in enrolled_courses:
-        # Assignments
+        # --- Assignment Metrics ---
         total_assignments = Assignment.objects.filter(course=course).count()
         submitted_assignments = AssignmentSubmission.objects.filter(course=course, student=student).count()
         pending_assignments = total_assignments - submitted_assignments
 
-        # GDBs
+        # Calculate percentage for progress bar (fixed missing logic)
+        submitted_percent = 0
+        if total_assignments > 0:
+            submitted_percent = round((submitted_assignments / total_assignments) * 100)
+
+        # --- GDB Metrics ---
         total_gdbs = GDB.objects.filter(course=course).count()
         participated_gdbs = GDBParticipation.objects.filter(course=course, student=student).count()
         pending_gdbs = total_gdbs - participated_gdbs
+        
+        # Calculate percentage for progress bar (fixed missing logic)
+        gdb_participated_percent = 0
+        if total_gdbs > 0:
+            gdb_participated_percent = round((participated_gdbs / total_gdbs) * 100)
 
-        # Summaries
+        # --- Recent Activity Summaries (count new assignments uploaded by staff) ---
         weekly_assignments = Assignment.objects.filter(course=course, upload_date__date__gte=week_ago).count()
         monthly_assignments = Assignment.objects.filter(course=course, upload_date__date__gte=month_ago).count()
         five_month_assignments = Assignment.objects.filter(course=course, upload_date__date__gte=five_months_ago).count()
 
+        # Compile data for the template
         report_data.append({
             'course': course.course_code,
-            'weekly_assignments': weekly_assignments,
-            'monthly_assignments': monthly_assignments,
-            'five_month_assignments': five_month_assignments,
+            # Totals & Percentages (NEWLY ADDED/FIXED)
+            'total_assignments': total_assignments,
+            'total_gdbs': total_gdbs,
+            'submitted_percent': submitted_percent,
+            'gdb_participated_percent': gdb_participated_percent,
+            # Counts
             'submitted_assignments': submitted_assignments,
             'pending_assignments': pending_assignments,
             'participated_gdbs': participated_gdbs,
             'pending_gdbs': pending_gdbs,
+            # Activity Summaries
+            'weekly_assignments': weekly_assignments,
+            'monthly_assignments': monthly_assignments,
+            'five_month_assignments': five_month_assignments,
         })
 
     return render(request, 'student_reports.html', {

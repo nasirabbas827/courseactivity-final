@@ -2,68 +2,140 @@
 {% block title %}Reports Dashboard{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <div class="container mt-5">
-    <h2 class="mb-4 text-primary">Student Reports Dashboard</h2>
+    <h2 class="mb-3 text-primary">
+        <i class="bi bi-bar-chart-fill me-2"></i> Student Reports Dashboard
+    </h2>
+    <!-- Back to dashboard link -->
+    <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary btn-sm mb-4 shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
 
     <!-- Export Buttons -->
-    <div class="mb-4 d-flex gap-3">
-        <button onclick="exportToExcel()" class="btn btn-success">Export to Excel</button>
-        <button onclick="exportToPDF()" class="btn btn-danger">Export to PDF</button>
+    <div class="mb-5 d-flex gap-3">
+        <button onclick="exportToExcel()" class="btn btn-success btn-lg shadow-sm">
+            <i class="bi bi-file-earmark-spreadsheet me-2"></i> Export to Excel
+        </button>
+        <button onclick="exportToPDF()" class="btn btn-danger btn-lg shadow-sm">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i> Export to PDF
+        </button>
     </div>
 
     <!-- Summary Cards -->
     <div class="row">
         {% for d in report_data %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
+        <div class="col-md-12 col-lg-6 mb-4">
+            <!-- Enhanced card design with primary border -->
+            <div class="card shadow-lg border-start border-5 border-primary h-100 rounded-3">
                 <div class="card-body">
-                    <h5 class="card-title text-primary">{{ d.course }}</h5>
-                    <p class="mb-1"><strong>Assignments (Submitted):</strong> {{ d.submitted_assignments }}</p>
-                    <p class="mb-1"><strong>Pending Assignments:</strong> {{ d.pending_assignments }}</p>
-                    <div class="progress mb-2" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ d.submitted_percent }}%;"></div>
+                    <h4 class="card-title text-primary border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center">
+                        <!-- Course Code -->
+                        {{ d.course }} 
+                        <!-- Total Activities Badge -->
+                        <span class="badge bg-primary-subtle text-primary fs-6">{{ d.total_assignments|add:d.total_gdbs }} Activities</span>
+                    </h4>
+
+                    <!-- 1. Assignments Progress Card -->
+                    <div class="mb-3 border rounded p-3 bg-light">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="text-dark"><i class="bi bi-journals me-1"></i> Assignments ({{ d.submitted_assignments }}/{{ d.total_assignments }})</h6>
+                            <span class="fw-bold text-success">{{ d.submitted_percent }}%</span>
+                        </div>
+                        <p class="mb-1 small text-muted">
+                            <span class="text-success me-3">Submitted: {{ d.submitted_assignments }}</span> |
+                            <span class="text-danger ms-3">Pending: {{ d.pending_assignments }}</span>
+                        </p>
+                        <div class="progress" style="height: 12px;">
+                            <!-- Uses submitted_percent calculated in views.py -->
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ d.submitted_percent }}%;" aria-valuenow="{{ d.submitted_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
                     </div>
 
-                    <p class="mb-1"><strong>GDBs Participated:</strong> {{ d.participated_gdbs }}</p>
-                    <p class="mb-1"><strong>Pending GDBs:</strong> {{ d.pending_gdbs }}</p>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ d.gdb_participated_percent }}%;"></div>
+                    <!-- 2. GDB Progress Card -->
+                    <div class="mb-3 border rounded p-3 bg-light">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="text-dark"><i class="bi bi-chat-right-text-fill me-1"></i> GDBs ({{ d.participated_gdbs }}/{{ d.total_gdbs }})</h6>
+                            <span class="fw-bold text-info">{{ d.gdb_participated_percent }}%</span>
+                        </div>
+                        <p class="mb-1 small text-muted">
+                            <span class="text-info me-3">Participated: {{ d.participated_gdbs }}</span> |
+                            <span class="text-danger ms-3">Pending: {{ d.pending_gdbs }}</span>
+                        </p>
+                        <div class="progress" style="height: 12px;">
+                            <!-- Uses gdb_participated_percent calculated in views.py -->
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ d.gdb_participated_percent }}%;" aria-valuenow="{{ d.gdb_participated_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Recent Activity Summary (New Section) -->
+                    <div class="mt-4 border-top pt-3">
+                        <h6 class="text-secondary"><i class="bi bi-clock-history me-1"></i> New Activities Posted</h6>
+                        <div class="d-flex justify-content-between small text-muted flex-wrap">
+                            <div class="p-2 border rounded-pill bg-white mb-2 me-1">
+                                <i class="bi bi-calendar-week"></i> Last Week: <strong>{{ d.weekly_assignments }}</strong>
+                            </div>
+                            <div class="p-2 border rounded-pill bg-white mb-2 me-1">
+                                <i class="bi bi-calendar-check"></i> Last Month: <strong>{{ d.monthly_assignments }}</strong>
+                            </div>
+                            <div class="p-2 border rounded-pill bg-white mb-2">
+                                <i class="bi bi-calendar-range"></i> Last 5 Months: <strong>{{ d.five_month_assignments }}</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    
+    <hr class="my-5">
 
     <!-- Charts -->
     <div class="row mt-5">
-        <div class="col-md-6">
-            <h5 class="text-secondary">Pending Assignments Distribution</h5>
-            <canvas id="assignmentsPieChart"></canvas>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary"><i class="bi bi-pie-chart-fill me-1"></i> Pending Assignments Distribution</h5>
+                    <canvas id="assignmentsPieChart"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <h5 class="text-secondary">GDB Performance Overview</h5>
-            <canvas id="gdbBarChart"></canvas>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary"><i class="bi bi-bar-chart-line-fill me-1"></i> GDB Performance Overview</h5>
+                    <canvas id="gdbBarChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <hr class="my-5">
 
     <!-- Alerts -->
     <div class="mt-5">
-        <h4>Real-Time Alerts</h4>
+        <h4 class="mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Action Required Alerts</h4>
         <ul class="list-group">
             {% for d in report_data %}
                 {% if d.pending_assignments > 0 %}
-                    <li class="list-group-item list-group-item-warning">
-                        {{ d.course }}: {{ d.pending_assignments }} assignment(s) pending
+                    <li class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center rounded-3 mb-2 shadow-sm">
+                        <i class="bi bi-journal-x me-2 fs-5"></i>
+                        <strong>{{ d.course }}</strong>: You have <strong>{{ d.pending_assignments }}</strong> assignment(s) pending.
+                        <span class="badge bg-warning text-dark rounded-pill">Urgent</span>
                     </li>
                 {% endif %}
                 {% if d.pending_gdbs > 0 %}
-                    <li class="list-group-item list-group-item-warning">
-                        {{ d.course }}: {{ d.pending_gdbs }} GDB(s) pending
+                    <li class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center rounded-3 mb-2 shadow-sm">
+                        <i class="bi bi-chat-square-x-fill me-2 fs-5"></i>
+                        <strong>{{ d.course }}</strong>: You have <strong>{{ d.pending_gdbs }}</strong> GDB(s) pending for participation.
+                        <span class="badge bg-warning text-dark rounded-pill">Urgent</span>
                     </li>
                 {% endif %}
             {% empty %}
-                <li class="list-group-item">No pending tasks!</li>
+                <li class="list-group-item list-group-item-success rounded-3 mb-2 shadow-sm">
+                    <i class="bi bi-check-circle-fill me-2"></i> Great job! No pending tasks across all courses.
+                </li>
             {% endfor %}
         </ul>
     </div>
@@ -76,22 +148,43 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // Collect data for charts
     const labels = [{% for d in report_data %}"{{ d.course }}",{% endfor %}];
     const pendingAssignments = [{% for d in report_data %}{{ d.pending_assignments }},{% endfor %}];
     const participatedGDBs = [{% for d in report_data %}{{ d.participated_gdbs }},{% endfor %}];
     const pendingGDBs = [{% for d in report_data %}{{ d.pending_gdbs }},{% endfor %}];
-
+    
+    // Custom colors for Chart.js
+    const chartColors = [
+        '#0d6efd', // Primary Blue
+        '#dc3545', // Danger Red
+        '#ffc107', // Warning Yellow
+        '#198754', // Success Green
+        '#6f42c1', // Purple
+        '#20c997', // Teal
+        '#fd7e14', // Orange
+    ];
+    
+    // --- Assignments Pie Chart ---
     new Chart(document.getElementById('assignmentsPieChart'), {
         type: 'pie',
         data: {
             labels: labels,
             datasets: [{
                 data: pendingAssignments,
-                backgroundColor: ['#dc3545', '#ffc107', '#17a2b8', '#6f42c1', '#28a745']
+                backgroundColor: chartColors.slice(0, labels.length) 
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: false }
+            }
         }
     });
 
+    // --- GDB Bar Chart ---
     new Chart(document.getElementById('gdbBarChart'), {
         type: 'bar',
         data: {
@@ -99,53 +192,85 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [
                 {
                     label: 'Participated',
-                    backgroundColor: '#007bff',
+                    backgroundColor: '#0dcaf0', // Info Blue
                     data: participatedGDBs
                 },
                 {
                     label: 'Pending',
-                    backgroundColor: '#dc3545',
+                    backgroundColor: '#dc3545', // Danger Red
                     data: pendingGDBs
                 }
             ]
         },
         options: {
             responsive: true,
-            scales: { y: { beginAtZero: true } }
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    title: { display: true, text: 'Count of Activities' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom' }
+            }
         }
     });
 });
 
 // Export Functions
 function exportToExcel() {
-    const wb = XLSX.utils.json_to_sheet([
+    const data = [
         {% for d in report_data %}
         {
             "Course": "{{ d.course }}",
+            "Total Assignments": {{ d.total_assignments }},
             "Submitted Assignments": {{ d.submitted_assignments }},
             "Pending Assignments": {{ d.pending_assignments }},
+            "Total GDBs": {{ d.total_gdbs }},
             "GDBs Participated": {{ d.participated_gdbs }},
-            "Pending GDBs": {{ d.pending_gdbs }}
+            "Pending GDBs": {{ d.pending_gdbs }},
+            "New Assignments (Last 7 days)": {{ d.weekly_assignments }},
+            "New Assignments (Last 30 days)": {{ d.monthly_assignments }}
         },
         {% endfor %}
-    ]);
+    ];
+
+    const wb = XLSX.utils.json_to_sheet(data);
     const wbBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wbBook, wb, "Report");
-    XLSX.writeFile(wbBook, "student_report.xlsx");
+    XLSX.utils.book_append_sheet(wbBook, wb, "Student Report");
+    XLSX.writeFile(wbBook, "student_report_{{ today|date:'Ymd' }}.xlsx");
 }
 
 function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text("Student Report Summary", 10, 10);
-    const data = [
-        ["Course", "Submitted", "Pending", "GDBs Done", "GDBs Pending"],
+    doc.setFontSize(18);
+    doc.text("Student Activity Report Summary", 10, 15);
+    doc.setFontSize(11);
+    doc.text(`Report Date: {{ today|date:'M d, Y' }}`, 10, 22);
+
+    const headers = [
+        ["Course", "Total A", "Done A", "Pending A", "Total GDB", "Done GDB", "Pending GDB"]
+    ];
+    
+    const bodyData = [
         {% for d in report_data %}
-        ["{{ d.course }}", "{{ d.submitted_assignments }}", "{{ d.pending_assignments }}", "{{ d.participated_gdbs }}", "{{ d.pending_gdbs }}"],
+        ["{{ d.course }}", "{{ d.total_assignments }}", "{{ d.submitted_assignments }}", "{{ d.pending_assignments }}", "{{ d.total_gdbs }}", "{{ d.participated_gdbs }}", "{{ d.pending_gdbs }}"],
         {% endfor %}
     ];
-    doc.autoTable({ head: [data[0]], body: data.slice(1), startY: 20 });
-    doc.save("student_report.pdf");
+
+    doc.autoTable({ 
+        head: headers, 
+        body: bodyData, 
+        startY: 30,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [13, 110, 253] }
+    });
+    
+    doc.save("student_report_{{ today|date:'Ymd' }}.pdf");
 }
 </script>
 {% endblock %}
